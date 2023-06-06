@@ -100,7 +100,7 @@ class DRLAgent:
         )
 
     def train_model(self, model, tb_log_name, total_timesteps=5000):
-        model = model.learn(
+        model = model.learn_(
             total_timesteps=total_timesteps,
             tb_log_name=tb_log_name,
             callback=TensorboardCallback(),
