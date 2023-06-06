@@ -49,7 +49,7 @@ class StockTradingEnv(gym.Env):
         self.df = df
         self.stock_dim = stock_dim
         self.hmax = hmax
-        self.num_stock_shares = num_stock_shares
+        self.num_stock_shares = np.array(num_stock_shares)
         self.initial_amount = initial_amount  # get the initial cash
         self.buy_cost_pct = buy_cost_pct
         self.sell_cost_pct = sell_cost_pct
