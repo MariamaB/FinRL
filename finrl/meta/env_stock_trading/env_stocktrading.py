@@ -395,59 +395,61 @@ class StockTradingEnv(gym.Env):
         return self.state
 
     def _initiate_state(self):
-        if self.initial:
-            # For Initial State
-            if len(self.df.tic.unique()) > 1:
-                # for multiple stock
-                state = (
-                    [self.initial_amount]
-                    + self.data.close.values.tolist()
-                    + self.num_stock_shares
-                    + sum(
-                        (
-                            self.data[tech].values.tolist()
-                            for tech in self.tech_indicator_list
-                        ),
-                        [],
-                    )
-                )  # append initial stocks_share to initial state, instead of all zero
-            else:
-                # for single stock
-                state = (
-                    [self.initial_amount]
-                    + [self.data.close]
-                    + [0] * self.stock_dim
-                    + sum(([self.data[tech]] for tech in self.tech_indicator_list), [])
+    # Ensure self.num_stock_shares has the same length as self.data.close
+    if len(self.num_stock_shares) < len(self.data.close):
+        self.num_stock_shares.extend([0] * (len(self.data.close) - len(self.num_stock_shares)))
+
+    if self.initial:
+        # For Initial State
+        if len(self.df.tic.unique()) > 1:
+            # for multiple stocks
+            state = (
+                [self.initial_amount]
+                + self.data.close.values.tolist()
+                + self.num_stock_shares
+                + sum(
+                    (
+                        self.data[tech].values.tolist()
+                        for tech in self.tech_indicator_list
+                    ),
+                    [],
                 )
+            )
         else:
-            # Using Previous State
-            if len(self.df.tic.unique()) > 1:
-                # for multiple stock
-                state = (
-                    [self.previous_state[0]]
-                    + self.data.close.values.tolist()
-                    + self.previous_state[
-                        (self.stock_dim + 1) : (self.stock_dim * 2 + 1)
-                    ]
-                    + sum(
-                        (
-                            self.data[tech].values.tolist()
-                            for tech in self.tech_indicator_list
-                        ),
-                        [],
-                    )
+            # for single stock
+            state = (
+                [self.initial_amount]
+                + [self.data.close]
+                + [0] * self.stock_dim
+                + sum(([self.data[tech]] for tech in self.tech_indicator_list), [])
+            )
+    else:
+        # Using Previous State
+        if len(self.df.tic.unique()) > 1:
+            # for multiple stocks
+            state = (
+                [self.previous_state[0]]
+                + self.data.close.values.tolist()
+                + self.previous_state[(self.stock_dim + 1) : (self.stock_dim * 2 + 1)]
+                + sum(
+                    (
+                        self.data[tech].values.tolist()
+                        for tech in self.tech_indicator_list
+                    ),
+                    [],
                 )
-            else:
-                # for single stock
-                state = (
-                    [self.previous_state[0]]
-                    + [self.data.close]
-                    + self.previous_state[
-                        (self.stock_dim + 1) : (self.stock_dim * 2 + 1)
-                    ]
-                    + sum(([self.data[tech]] for tech in self.tech_indicator_list), [])
-                )
-        return state
+            )
+        else:
+            # for single stock
+            state = (
+                [self.previous_state[0]]
+                + [self.data.close]
+                + self.previous_state[(self.stock_dim + 1) : (self.stock_dim * 2 + 1)]
+                + sum(([self.data[tech]] for tech in self.tech_indicator_list), [])
+            )
+
+    return state
+
 
     def _update_state(self):
         if len(self.df.tic.unique()) > 1:
